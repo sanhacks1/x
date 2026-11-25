@@ -1,1 +1,1 @@
-{"name": "s0xapp", "version": "1.0.0", "private": true, "engines": {"node": "22.x"}}
+{"name": "s0xapp", "version": "1.0.1", "private": true, "engines": {"node": "22.x"}, "dependencies": {"lodash": "4.17.21"}}
